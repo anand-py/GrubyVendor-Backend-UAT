@@ -1,19 +1,19 @@
 const { db } = require('../config/firebaseConfig');
 const { v4: uuidv4 } = require('uuid');
 
-const sendOtp = async (req, res) => {
-  try {
-    const { phoneNumber } = req.body;
-    const phoneNumberWithCountryCode = `+91${phoneNumber}`;
+// const sendOtp = async (req, res) => {
+//   try {
+//     const { phoneNumber } = req.body;
+//     const phoneNumberWithCountryCode = `+91${phoneNumber}`;
 
-    // Currently not using OTP, so just return a success message
-    res.status(200).send({
-      message: 'OTP part is disabled, proceed without OTP'
-    });
-  } catch (error) {
-    res.status(500).send('Error sending OTP: ' + error.message);
-  }
-};
+//     // Currently not using OTP, so just return a success message
+//     res.status(200).send({
+//       message: 'OTP part is disabled, proceed without OTP'
+//     });
+//   } catch (error) {
+//     res.status(500).send('Error sending OTP: ' + error.message);
+//   }
+// };
 
 const signup = async (req, res) => {
   try {
@@ -104,6 +104,5 @@ const login = async (req, res) => {
 
 module.exports = {
   signup,
-  login,
-  sendOtp
+  login
 };
