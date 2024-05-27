@@ -1,18 +1,14 @@
-const { db, firebase } = require('../config/firebaseConfig');
-
+const { db } = require('../config/firebaseConfig');
+const { v4: uuidv4 } = require('uuid');
 
 const sendOtp = async (req, res) => {
   try {
     const { phoneNumber } = req.body;
     const phoneNumberWithCountryCode = `+91${phoneNumber}`;
 
-    // Use Firebase Admin SDK to send the OTP
-    const sessionInfo = await admin.auth().createSessionCookie(phoneNumberWithCountryCode, { expiresIn: 60 * 60 * 1000 });
-
-    // Send response with session info upon successful OTP generation
+    // Currently not using OTP, so just return a success message
     res.status(200).send({
-      message: 'OTP sent successfully',
-      sessionInfo,
+      message: 'OTP part is disabled, proceed without OTP'
     });
   } catch (error) {
     res.status(500).send('Error sending OTP: ' + error.message);
@@ -29,19 +25,8 @@ const signup = async (req, res) => {
       shopAddress,
       bankDetails,
       fcmToken,
-      isVerified,
-      otp,
-      verificationId
+      isVerified
     } = req.body;
-
-    // Confirm the OTP
-    const credential = firebase.auth.PhoneAuthProvider.credential(verificationId, otp);
-    const userCredential = await firebase.auth().signInWithCredential(credential);
-    const user = userCredential.user;
-
-    if (!user || user.phoneNumber !== `+91${phoneNumber}`) { // Adjust the country code as needed
-      return res.status(400).send('Invalid OTP.');
-    }
 
     // Check if email already exists
     const emailQuery = await db.collection('vendors').where('email', '==', email).get();
@@ -92,18 +77,9 @@ const signup = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { phoneNumber, otp, verificationId } = req.body;
+    const { phoneNumber, email } = req.body;
 
-    // Confirm the OTP
-    const credential = firebase.auth.PhoneAuthProvider.credential(verificationId, otp);
-    const userCredential = await firebase.auth().signInWithCredential(credential);
-    const user = userCredential.user;
-
-    if (!user || user.phoneNumber !== `+91${phoneNumber}`) { // Adjust the country code as needed
-      return res.status(400).send('Invalid OTP.');
-    }
-
-    // Fetch user data from Firestore
+    // Fetch user data from Firestore based on phone number
     const phoneQuery = await db.collection('vendors').where('phoneNumber', '==', phoneNumber).get();
 
     if (phoneQuery.empty) {
@@ -111,6 +87,11 @@ const login = async (req, res) => {
     }
 
     const vendorData = phoneQuery.docs[0].data();
+
+    // Check if the email matches
+    if (vendorData.email !== email) {
+      return res.status(400).send('Email does not match.');
+    }
 
     res.status(200).send({
       message: 'Login successful',
